@@ -15,7 +15,7 @@ MIN_STARS = 5
 
 def process_files(archives_dir, 
                   dest_dir, 
-                  filter_fn,
+                  substrings,
                   creds):
     """
     `filter_fn` is String -> Bool intended to take a source file as input
@@ -31,10 +31,13 @@ def process_files(archives_dir,
     count_raw = 0
     count_proc = 0
 
-    for archive in os.listdir(archives_dir):
+    for archive in tqdm(os.listdir(archives_dir)):
         with gzip.open(os.path.join(archives_dir, archive)) as f: 
             data = ndjson.load(f)
-        
+
+        if substrings:
+            data = list(filter(lambda x: any(y in x["content"] for y in substrings), data))
+ 
         for line in tqdm(data): 
             repo_name = line["repo_name"] 
 
@@ -61,7 +64,7 @@ def process_files(archives_dir,
 
             text = line["content"]
 
-            if stars >= MIN_STARS and filter_fn(text): 
+            if stars >= MIN_STARS: 
                 meta = {key: line[key] for key in line if key!="content"}
                 meta["stars"] = stars
                 new_line = {"text": text, "meta": meta}
@@ -91,26 +94,14 @@ def process_lean(creds):
     lean_filter_fn = lambda x: True 
     
     print("PROCESSING LEAN SUBSET")
-    process_files(archives_dir, dest_dir, lean_filter_fn, creds)
+    process_files(archives_dir, dest_dir, None, creds)
 
 def process_sage(creds): 
     archives_dir = os.path.join(RAW_DIR, "sage")
     dest_dir = os.path.join(PROCESSED_DIR, "sage")
-    sage_filter_fn = lambda x: True 
     
     print("PROCESSING SAGE SUBSET") 
-    process_files(archives_dir, dest_dir, sage_filter_fn, creds)
-
-def process_thy(creds): 
-    """
-    None of the isabelle stuff apart from AFP looks useful, leaving it out
-    """
-    archives_dir = os.path.join(RAW_DIR, "thy")
-    dest_dir = os.path.join(PROCESSED_DIR, "thy")
-    thy_filter_fn = lambda x: True 
-
-    print("PROCESSING THY SUBSET")
-    process_files(archives_dir, dest_dir, thy_filter_fn, creds)
+    process_files(archives_dir, dest_dir, None, creds)
 
 def process_py(creds): 
     archives_dir = os.path.join(RAW_DIR, "py")
@@ -119,15 +110,19 @@ def process_py(creds):
     substrings = ("import numpy", "from numpy", "import scipy", 
             "from scipy", "import sympy", "from sympy")
 
-    py_filter_fn = lambda text: any(x in text for x in substrings)
     
     print("PROCESSING PY SUBSET")
-    process_files(archives_dir, dest_dir, py_filter_fn, creds)
+    process_files(archives_dir, dest_dir, substrings, creds)
 
+""" 
+FILTER FN is a bad way of doing things
+Just have if statements in the code for the different
+languages
+"""
 def main(): 
     creds = ("zhangir-azerbayev", os.environ["GITHUB_TOKEN"])
     #process_lean(creds)
-    #process_py(creds)
+    process_py(creds)
     #process_sage(creds)
 
 if __name__=="__main__": 
