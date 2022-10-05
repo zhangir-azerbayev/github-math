@@ -128,7 +128,7 @@ def main():
     creds = ("zhangir-azerbayev", os.environ["GITHUB_TOKEN"])
     #process_lean(creds)
     #process_py(creds)
-    process_sage(creds)
+    #process_sage(creds)
 
 if __name__=="__main__": 
     main()
