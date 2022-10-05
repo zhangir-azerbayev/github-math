@@ -35,8 +35,7 @@ def process_files(archives_dir,
         with gzip.open(os.path.join(archives_dir, archive)) as f: 
             data = ndjson.load(f)
         
-        # DONT FORGET YOU PUT THIS HERE FOR TESTING PY
-        for line in tqdm(data[:800]): 
+        for line in tqdm(data): 
             repo_name = line["repo_name"] 
 
             if repo_name in stars_of_repo: 
@@ -79,8 +78,6 @@ def process_files(archives_dir,
         count_raw += len(data)
         count_proc += len(new_data)
 
-        # DONT FORGET YOU ADDED THIS FOR PYTHON TESTING
-        break
     
     print(f"FOLLOWING REPOS 404'ED: {not_founds}")
     print(f"RAW FILES ANALYZED: {count_raw}")
@@ -95,6 +92,14 @@ def process_lean(creds):
     
     print("PROCESSING LEAN SUBSET")
     process_files(archives_dir, dest_dir, lean_filter_fn, creds)
+
+def process_sage(creds): 
+    archives_dir = os.path.join(RAW_DIR, "sage")
+    dest_dir = os.path.join(PROCESSED_DIR, "sage")
+    sage_filter_fn = lambda x: True 
+    
+    print("PROCESSING SAGE SUBSET") 
+    process_files(archives_dir, dest_dir, sage_filter_fn, creds)
 
 def process_thy(creds): 
     """
@@ -122,7 +127,8 @@ def process_py(creds):
 def main(): 
     creds = ("zhangir-azerbayev", os.environ["GITHUB_TOKEN"])
     #process_lean(creds)
-    process_py(creds)
+    #process_py(creds)
+    process_sage(creds)
 
 if __name__=="__main__": 
     main()
