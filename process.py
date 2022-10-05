@@ -34,8 +34,9 @@ def process_files(archives_dir,
     for archive in os.listdir(archives_dir):
         with gzip.open(os.path.join(archives_dir, archive)) as f: 
             data = ndjson.load(f)
-
-        for line in tqdm(data): 
+        
+        # DONT FORGET YOU PUT THIS HERE FOR TESTING PY
+        for line in tqdm(data[:800]): 
             repo_name = line["repo_name"] 
 
             if repo_name in stars_of_repo: 
@@ -44,6 +45,10 @@ def process_files(archives_dir,
                 resp = requests.get("https://api.github.com/repos/" + repo_name, 
                         auth=creds)
                 if resp.status_code == 404: 
+                    not_founds.add(repo_name)
+                    continue
+                elif resp.status_code == 451: 
+                    # Unavailable for legal reasons
                     not_founds.add(repo_name)
                     continue
                 elif resp.status_code != 200: 
@@ -73,6 +78,9 @@ def process_files(archives_dir,
 
         count_raw += len(data)
         count_proc += len(new_data)
+
+        # DONT FORGET YOU ADDED THIS FOR PYTHON TESTING
+        break
     
     print(f"FOLLOWING REPOS 404'ED: {not_founds}")
     print(f"RAW FILES ANALYZED: {count_raw}")
@@ -88,9 +96,33 @@ def process_lean(creds):
     print("PROCESSING LEAN SUBSET")
     process_files(archives_dir, dest_dir, lean_filter_fn, creds)
 
+def process_thy(creds): 
+    """
+    None of the isabelle stuff apart from AFP looks useful, leaving it out
+    """
+    archives_dir = os.path.join(RAW_DIR, "thy")
+    dest_dir = os.path.join(PROCESSED_DIR, "thy")
+    thy_filter_fn = lambda x: True 
+
+    print("PROCESSING THY SUBSET")
+    process_files(archives_dir, dest_dir, thy_filter_fn, creds)
+
+def process_py(creds): 
+    archives_dir = os.path.join(RAW_DIR, "py")
+    dest_dir = os.path.join(PROCESSED_DIR, "py")
+    
+    substrings = ("import numpy", "from numpy", "import scipy", 
+            "from scipy", "import sympy", "from sympy")
+
+    py_filter_fn = lambda text: any(x in text for x in substrings)
+    
+    print("PROCESSING PY SUBSET")
+    process_files(archives_dir, dest_dir, py_filter_fn, creds)
+
 def main(): 
     creds = ("zhangir-azerbayev", os.environ["GITHUB_TOKEN"])
-    process_lean(creds)
+    #process_lean(creds)
+    process_py(creds)
 
 if __name__=="__main__": 
     main()

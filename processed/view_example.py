@@ -1,7 +1,7 @@
 import ndjson
 import zstandard
 
-path = 'lean/lean_files_000000000000.jsonl.zst'
+path = 'py/py_files_000000000407.jsonl.zst'
 with open(path, 'rb') as f: 
     json_bytes = f.read()
     dctx = zstandard.ZstdDecompressor()
@@ -9,6 +9,11 @@ with open(path, 'rb') as f:
 
     data = ndjson.loads(json_str)
 
-
-print(data[0])
-print(data[0].keys())
+so_far = set()
+for x in data: 
+    repo_name = x["meta"]["repo_name"]
+    if repo_name not in so_far: 
+        print(repo_name)
+        so_far.add(repo_name)
+    print("#"*80)
+    print(x["text"])
