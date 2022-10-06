@@ -54,16 +54,18 @@ def process_files(archives_dir,
                     not_founds.add(repo_name)
                     continue
                 elif resp.status_code != 200: 
-                    print(resp.status_code)
+                    print("WARNING: HTTP REQUEST FAILED")
+                    print(f"RESP STATUS CODE{resp.status_code}")
                     print(repo_name)
-                    raise AssertionError("http request failed")
+                    not_founds.add(repo_name)
+                    continue 
 
                 metadata = json.loads(resp.content.decode("utf-8"))
                 stars = metadata["stargazers_count"]
                 stars_of_repo[repo_name] = stars
 
             text = line["content"]
-
+            
             if stars >= MIN_STARS: 
                 meta = {key: line[key] for key in line if key!="content"}
                 meta["stars"] = stars
