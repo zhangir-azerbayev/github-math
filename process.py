@@ -49,8 +49,6 @@ query {
 
     resp_json = json.loads(resp.content.decode('utf-8'))["data"]
     
-    print(resp_json)
-
     stars_of_key = {x: resp_json[x]['stargazers']['totalCount'] for x in resp_json if resp_json[x]}
 
     stars_of_repo = {repo: stars_of_key[key_of_repo[repo]] for repo in key_of_repo if key_of_repo[repo] in stars_of_key}
@@ -140,6 +138,13 @@ def process_sage(creds):
     print("PROCESSING SAGE SUBSET") 
     process_files(archives_dir, dest_dir, None, creds)
 
+def process_R(creds): 
+    archives_dir = os.path.join(RAW_DIR, "R")
+    dest_dir = os.path.join(PROCESSED_DIR, "R")
+    
+    print("PROCESSING R SUBSET") 
+    process_files(archives_dir, dest_dir, None, creds)
+
 def process_py(creds): 
     archives_dir = os.path.join(RAW_DIR, "py")
     dest_dir = os.path.join(PROCESSED_DIR, "py")
@@ -158,9 +163,10 @@ languages
 """
 def main(): 
     creds = ("zhangir-azerbayev", os.environ["GITHUB_TOKEN"])
-    #process_lean(creds)
-    process_py(creds)
+    process_lean(creds)
+    #process_py(creds)
     #process_sage(creds)
+    #process_R(creds)
 
 if __name__=="__main__": 
     main()
